@@ -11,9 +11,9 @@ public class Main {
 
         Maze maze = new Maze(seed, 32, 32);
 
-        for (boolean[] row : maze.cells) {
-            for (boolean b : row) {
-                if(b){
+        for (int[] row : maze.cells) {
+            for (int i : row) {
+                if(i == 1){
                     System.out.print("x");
                 }else{
                     System.out.print(" ");

@@ -2,9 +2,9 @@ package joel;
 
 import joel.OpenSimplex2S;
 
-import java.util.Random;
+import java.util.*;
 
-public class Maze {
+public class Maze { //My own java implementation of Eller's Maze algorithm, as detailed at http://www.neocomputer.org/projects/eller.html
 
     OpenSimplex2S noise = new OpenSimplex2S();
 
@@ -12,69 +12,89 @@ public class Maze {
     private final int height;
     private long seed;
 
-    public static boolean[][] cells;
+    public static int[][] cells;
 
-    int[][] possibleDirections = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-    int[] preferredDirection = {1, 0};
 
-    public Maze(long seed, int width, int height){
+
+    Maze(long seed, int width, int height){
         this.width = width;
         this.height = height;
         this.seed = seed;
 
+        cells = new int[height][width];
 
-        cells = new boolean[height][width];
+        genMaze();
 
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                cells[i][j] = true;
+    }
+
+    public void genMaze(){
+        for (int y = 0; y < height; y++) {
+            doRow(y);
+        }
+    }
+
+    private void doRow(int y){
+        if (y == 0) { // first row
+            cells[y] = firstRow();
+        } else { // y > 0
+            if (y == height-1) { // final row
+                finalRow(cells[y-1]);
+            } else { // middle rows
+                middleRow(cells[y-1]);
             }
         }
     }
 
-    public void setPath(int x, int y){
-        cells[y][x] = false;
-    }
+    private int[] firstRow(){
+        int[] workingRow = new int[width];
 
-    public void setWall(int x, int y){
-        cells[y][x] = true;
-    }
-
-    public boolean isWall(int x, int y){ //to avoid errors
-        if(x >= 0 && x < width && y >= 0 && y < height){
-            return cells[y][x];
-        }else{
-            return false;
-        }
-    }
-
-    public void createMaze(long seed, int x, int y){
-        //set current cell as path
-        setPath(x, y);
-
-        //this method of generation means that the same seed returns the same maze
-        //while writing this, I came up with a method that randomly generates 5 possible values (opposed to the 4 directions)
-        //but I realised that I could use that fifth generation to weight the maze and have a preferred direction
-
-        int[] directionToTry = preferredDirection;
-
-        if(Math.floor((noise.noise2_ImproveX(seed, 1, 1)*2)) != 2){
-            directionToTry = possibleDirections[(int) (Math.floor((noise.noise2_ImproveX(seed, 1, 1)*2)) + 2)];
+        // 'join any cells not members of a set to their own unique set'
+        for (int i = 0; i < workingRow.length; i++) {
+            workingRow[i] = i+1;
         }
 
-        int nodeX = x + (directionToTry[1] * 2);
-        int nodeY = y + (directionToTry[0] * 2);
-
-        if(isWall(x, y)){
-            int linkCellX = x + directionToTry[1];
-            int linkCellY = y + directionToTry[0];
-
-            setPath(linkCellX, linkCellY);
-
-            createMaze(seed, nodeX, nodeY);
+        // 'create right walls'
+        for (int x = 1; x < workingRow.length; x++) {
+            if(noise.noise2_ImproveX(seed, x, 0) > 0) { // y value in noise gen is 0 cause first row
+                workingRow[x] = workingRow[x-1]; // 'if we choose not to add a wall, unionise the sets'
+            }
         }
 
+        // 'create bottom walls'
+        // my implementation describes a bottom wall as the negative version of the set number
+        boolean downPassage = false;
+
+        while(!downPassage){
+            for (int x = 0; x < workingRow.length; x++) {
+                if(noise.noise2_ImproveX(seed, 0-x, 0) > 0) { // y value in noise gen is 0 cause first row
+                    workingRow[x] = 0 - workingRow[x];
+                    downPassage = true;
+                }
+            }
+        }
+
+        return workingRow;
     }
 
+    private int[] middleRow(int[] inputRow){ // 'create a new row' - step 5.A
+        int[] workingRow = inputRow;
 
+        for (int x = 1; x < workingRow.length; x++) {
+
+        }
+
+        return workingRow;
+    }
+
+    private int[] newRow(int[] inputRow){ // steps 2-4
+        int[] workingRow = inputRow;
+
+        return workingRow;
+    }
+
+    private int[] finalRow(int[] inputRow){ // 'complete the maze' - step 5.B
+        int[] workingRow = inputRow;
+
+        return workingRow;
+    }
 }
